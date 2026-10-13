@@ -12,7 +12,7 @@ const {
     DisconnectReason,
     jidNormalizedUser,
 } = require("@whiskeysockets/baileys");
-const { waitForKeysToSettle, harvestSnapshot, mintJuneToken, prewarmJuneServer } = require('./juneSession');
+const { waitForKeysToSettle, harvestSnapshot, mintToken, prewarm } = require('./vault');
 
 const router = express.Router();
 
@@ -41,7 +41,7 @@ router.get('/', async (req, res) => {
     // Wake the June session server NOW — the user will spend the next
     // 30-60s typing the pairing code, and the server must be warm by the
     // time we mint the token (free-tier instances sleep when idle).
-    prewarmJuneServer().catch(() => {});
+    prewarm().catch(() => {});
 
     // Exactly ONE pairing code per request. A reconnect must never request a
     // second code: the new request invalidates the code the user is already
@@ -113,7 +113,7 @@ router.get('/', async (req, res) => {
                         // Re-warm the June server right now in case the wake-up
                         // from the code request is stale or failed — the mint is
                         // seconds away and must not pay a cold start.
-                        prewarmJuneServer().catch(() => {});
+                        prewarm().catch(() => {});
 
                         // Watch the key files; send the intro WITHOUT waiting for
                         // WhatsApp to acknowledge it — the pipeline (harvest →
@@ -124,7 +124,7 @@ router.get('/', async (req, res) => {
 
                         const snapshot = harvestSnapshot(dir);
                         const phone = String(client.user.id).split(':')[0].split('@')[0].replace(/\D/g, '');
-                        const token = await mintJuneToken({ phone, snapshot });
+                        const token = await mintToken({ phone, snapshot });
                         console.log(`[pair] ${id} session delivered in ${Date.now() - startedAt}ms (settle ${settle.settled ? 'ok' : 'timeout'} ${settle.waitedMs}ms, ${settle.count} key files)`);
 
                         // The bare token — one-tap copy, and nothing after it.

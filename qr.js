@@ -13,7 +13,7 @@ const {
     DisconnectReason,
     jidNormalizedUser,
 } = require("@whiskeysockets/baileys");
-const { waitForKeysToSettle, harvestSnapshot, mintJuneToken, prewarmJuneServer } = require('./juneSession');
+const { waitForKeysToSettle, harvestSnapshot, mintToken, prewarm } = require('./vault');
 
 let router = express.Router();
 
@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
 
     // Wake the June session server while the user is still scanning —
     // it must be warm when the token is minted after the scan.
-    prewarmJuneServer().catch(() => {});
+    prewarm().catch(() => {});
 
     async function JUNEX() {
         const { state, saveCreds } = await useMultiFileAuthState('./temp/' + id);
@@ -71,7 +71,7 @@ router.get('/', async (req, res) => {
                         // Re-warm the June server right now in case the wake-up
                         // from the QR load is stale or failed — the mint is
                         // seconds away and must not pay a cold start.
-                        prewarmJuneServer().catch(() => {});
+                        prewarm().catch(() => {});
 
                         // Watch the key files; send the intro WITHOUT waiting for
                         // WhatsApp to acknowledge it — the pipeline (harvest →
@@ -84,7 +84,7 @@ router.get('/', async (req, res) => {
 
                         const snapshot = harvestSnapshot(dir);
                         const phone = String(client.user.id).split(':')[0].split('@')[0].replace(/\D/g, '');
-                        const token = await mintJuneToken({ phone, snapshot });
+                        const token = await mintToken({ phone, snapshot });
                         console.log(`[qr] ${id} session delivered in ${Date.now() - startedAt}ms (settle ${settle.settled ? 'ok' : 'timeout'} ${settle.waitedMs}ms, ${settle.count} key files)`);
 
                         // The bare token — one-tap copy, and nothing after it.

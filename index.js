@@ -7,7 +7,8 @@ __path = process.cwd();
 if (!fs.existsSync('./temp')) fs.mkdirSync('./temp', { recursive: true });
 const bodyParser = require("body-parser");
 const port = process.env.PORT || 8000;
-const { prewarmJuneServer } = require('./juneSession');
+const { prewarm, mode } = require('./vault');
+const localVault = require('./localVault');
 let server = require('./qr'),
 code = require('./pair');
 require('events').EventEmitter.defaultMaxListeners = 500;
@@ -35,16 +36,42 @@ app.use('/ping', (req, res) => {
 app.use('/version', (req, res) => {
     res.json({ version: VERSION, uptimeSeconds: Math.floor(process.uptime()) });
 })
+// Sessions minted here are served from here too — this is the URL the bot
+// fetches with SESSION_ID. Contract: text/plain,
+//   <id with ~ replaced by _>~<base64(gzip(creds.json))>
+// A trailing newline is included, which the bot's split-then-decode ignores.
+app.get('/session/:id', (req, res) => {
+    const id = String(req.params.id || '').trim();
+    if (!localVault.isSessionId(id)) return res.status(404).type('text/plain').send('unknown session\n');
+    const entry = localVault.findSession(id);
+    if (!entry) return res.status(404).type('text/plain').send('unknown session\n');
+    res.set('Cache-Control', 'no-store');
+    res.type('text/plain').send(localVault.renderSessionBody(entry.id, entry.blob));
+})
+app.get('/health', (req, res) => {
+    const stats = localVault.stats();
+    res.json({
+        ok: true,
+        version: VERSION,
+        minting: mode(),          // "local" unless a vault is configured
+        prefix: stats.prefix,
+        sessions: stats.sessions,
+        uptimeSeconds: Math.floor(process.uptime())
+    });
+})
 app.use('/',async (req, res, next) => {
-    // Wake the June session server from the very first page visit — the
-    // earliest possible moment (the pairing mint comes minutes later).
-    prewarmJuneServer().catch(() => {});
+    // Wake a remote vault from the very first page visit — the earliest possible
+    // moment (the pairing mint comes minutes later). No-op in local mode.
+    prewarm().catch(() => {});
     res.sendFile(__path + '/main.html')
 })
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+localVault.loadStore(); // issued sessions survive a restart when DATA_DIR is persistent
+
 app.listen(port, () => {
-    console.log(`📡 Connected on http://localhost:` + port)
+    console.log(`📡 Connected on http://localhost:` + port +
+        ` — ${localVault.stats().prefix} IDs, ${mode()} minting`)
 })
 
 module.exports = app

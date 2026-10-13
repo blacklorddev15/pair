@@ -8,7 +8,9 @@
         "node": ">=20.0.0"
     },
     "scripts": {
-        "start": "node index.js"
+        "start": "node index.js",
+    "test": "node test/localVault.js",
+    "test:server": "node test/server.js"
     },
     "author": "Astro Extra (derived from JuneX Ultra — GPL-3.0)",
     "license": "GPL-3.0",

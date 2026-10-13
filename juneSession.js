@@ -23,13 +23,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const DEFAULT_SERVER_URL = 'https://burning-lorena-eminentbo-ede53cc1.koyeb.app';
-
-// Site key for the June session server intake. A panel-set JUNE_INTAKE_KEY
-// always overrides this, so the key can be rotated from the hosting panel
-// without a code change. The baked-in default keeps pairing working on
-// fresh deploys where the panel environment was never configured.
-const DEFAULT_INTAKE_KEY = 'nNh7SQA0IeFb28NcaN3mRaW2G7F9Vi5mMdbKDIiK2Mk=';
+// No baked-in defaults on purpose. The upstream build shipped a third-party URL
+// and site key here, which is exactly why the ID prefix could never be changed:
+// every handle was minted on someone else's server. This module is now only
+// reached in remote mode — a vault configured explicitly in vault.js.
+const DEFAULT_SERVER_URL = '';
 
 // Same order as the June Ultra client: longest/most-specific prefixes first.
 const KEY_TYPES = [
@@ -134,7 +132,7 @@ function harvestSnapshot(sessionDir) {
 
 /** The June session server base URL (env override or primary default). */
 function juneServerUrl() {
-    return String(process.env.JUNE_SESSION_SERVER_URL || DEFAULT_SERVER_URL).trim().replace(/\/+$/, '');
+    return String(process.env.VAULT_URL || process.env.JUNE_SESSION_SERVER_URL || DEFAULT_SERVER_URL).trim().replace(/\/+$/, '');
 }
 
 /**
@@ -157,8 +155,8 @@ async function prewarmJuneServer() {
  */
 async function mintJuneToken({ phone, label, snapshot }) {
     const serverUrl = juneServerUrl();
-    const key = String(process.env.JUNE_INTAKE_KEY || DEFAULT_INTAKE_KEY).trim();
-    if (!key) throw new Error('JUNE_INTAKE_KEY is not configured on this site — ask the server owner for the site key');
+    const key = String(process.env.VAULT_KEY || process.env.INTAKE_KEY || process.env.JUNE_INTAKE_KEY || '').trim();
+    if (!key) throw new Error('no vault key is configured — set VAULT_KEY (or INTAKE_KEY for a vault that speaks the same intake API)');
 
     const post = () => fetch(`${serverUrl}/intake/session`, {
         method: 'POST',

@@ -5,9 +5,24 @@ services:
     plan: free
     buildCommand: npm install --legacy-peer-deps
     startCommand: node index.js
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: JUNE_INTAKE_KEY
-        value: nNh7SQA0IeFb28NcaN3mRaW2G7F9Vi5mMdbKDIiK2Mk=
+      # Session IDs this site issues look like: Astro-X~A1B2C3D4E5F6
+      - key: SESSION_PREFIX
+        value: "Astro-X~"
+      - key: SESSION_BODY_LENGTH
+        value: "12"
+      # 0 = keep issued sessions until the service restarts. Attach a Render disk
+      # and point DATA_DIR at it if IDs must survive a restart/redeploy.
+      - key: SESSION_KEEP_MINUTES
+        value: "0"
+      # Optional: mint on a remote vault instead of locally. BOTH are required,
+      # and neither has a built-in default any more (the upstream build shipped a
+      # third party's URL and key, which is what fixed the ID prefix to theirs).
+      # - key: VAULT_URL
+      #   value: https://vault.example.com
+      # - key: VAULT_KEY
+      #   value: <shared secret>
     autoDeploy: true
