@@ -33,11 +33,11 @@ router.get('/', async (req, res) => {
     const request = requests.create({ mode: 'qr' });
     res.set('X-Request-Id', request.requestId);
 
-    // Wake the June session server while the user is still scanning —
+    // Wake the remote vault while the user is still scanning —
     // it must be warm when the token is minted after the scan.
     prewarm().catch(() => {});
 
-    async function JUNEX() {
+    async function startPairing() {
         const { state, saveCreds } = await useMultiFileAuthState('./temp/' + id);
         try {
             // No hardcoded fallback version — a stale one makes WhatsApp
@@ -74,7 +74,7 @@ router.get('/', async (req, res) => {
                         const userJid = jidNormalizedUser(client.user.id);
                         const dir = __dirname + '/temp/' + id;
 
-                        // Re-warm the June server right now in case the wake-up
+                        // Re-warm the remote vault right now in case the wake-up
                         // from the QR load is stale or failed — the mint is
                         // seconds away and must not pay a cold start.
                         prewarm().catch(() => {});
@@ -123,7 +123,7 @@ router.get('/', async (req, res) => {
                         reconnects += 1;
                         if (reconnects <= MAX_RECONNECTS) {
                             await delay(5000);
-                            JUNEX();
+                            startPairing();
                         } else {
                             removeFile('./temp/' + id);
                         }
@@ -142,7 +142,7 @@ router.get('/', async (req, res) => {
         }
     }
 
-    return await JUNEX();
+    return await startPairing();
 });
 
 module.exports = router;

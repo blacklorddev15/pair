@@ -12,9 +12,8 @@
  * that operator chose — which is why nothing here has a built-in default.
  *
  * Environment variables:
- *   VAULT_URL      Where to upload (JUNE_SESSION_SERVER_URL also accepted).
- *   VAULT_KEY      The vault's shared secret (INTAKE_KEY / JUNE_INTAKE_KEY
- *                  also accepted).
+ *   VAULT_URL      Where to upload (only used when set).
+ *   VAULT_KEY      The vault's shared secret (INTAKE_KEY also accepted).
  *
  * Both are required: half a configuration silently falls back to local minting
  * rather than contacting a half-known host.
@@ -29,7 +28,8 @@ const path = require('path');
 // reached in remote mode — a vault configured explicitly in vault.js.
 const DEFAULT_SERVER_URL = '';
 
-// Same order as the June Ultra client: longest/most-specific prefixes first.
+// Longest/most-specific key types first, so 'app-state-sync-version' is not
+// matched by the shorter 'app-state-sync-key' prefix test.
 const KEY_TYPES = [
     'app-state-sync-version',
     'app-state-sync-key',
@@ -96,7 +96,7 @@ async function waitForKeysToSettle(sessionDir, { stablePolls = 3, intervalMs = 4
 }
 
 /**
- * Build the snapshot in the exact shape June Ultra's restore path expects
+ * Build the snapshot in the exact shape the bot's restore path expects
  * (mirrors the official session server's harvest, including the verified
  * auth meta rows).
  */
@@ -124,38 +124,38 @@ function harvestSnapshot(sessionDir) {
         sessionKeys,
         sessionAuthMeta: [
             { key: 'status', value: 'verified' },
-            { key: 'source', value: 'june-session-server' },
+            { key: 'source', value: 'remote-vault' },
             { key: 'paired_at', value: String(now) },
         ],
     };
 }
 
-/** The June session server base URL (env override or primary default). */
-function juneServerUrl() {
-    return String(process.env.VAULT_URL || process.env.JUNE_SESSION_SERVER_URL || DEFAULT_SERVER_URL).trim().replace(/\/+$/, '');
+/** The remote vault base URL — empty unless VAULT_URL is configured. */
+function remoteVaultUrl() {
+    return String(process.env.VAULT_URL || DEFAULT_SERVER_URL).trim().replace(/\/+$/, '');
 }
 
 /**
- * Wake the June session server early. Free-tier hosting (Koyeb) sleeps the
+ * Wake the remote vault early. Free-tier hosting sleeps the
  * instance after ~1h idle and the wake-up can take seconds — that must not
  * land between "Generating session..." and the token. Called fire-and-forget
  * the moment a visitor starts pairing (tens of seconds before the mint),
  * so the server is warm by the time the user has typed the code.
  * Never throws.
  */
-async function prewarmJuneServer() {
+async function prewarmRemoteVault() {
     try {
-        await fetch(`${juneServerUrl()}/health`, { signal: AbortSignal.timeout(20000) });
+        await fetch(`${remoteVaultUrl()}/health`, { signal: AbortSignal.timeout(20000) });
     } catch (_) { /* best effort only */ }
 }
 
 /**
- * Upload the snapshot and mint the official JUNE-X~ handle.
+ * Upload the snapshot and let the vault mint the handle.
  * Returns the canonical handle string.
  */
-async function mintJuneToken({ phone, label, snapshot }) {
-    const serverUrl = juneServerUrl();
-    const key = String(process.env.VAULT_KEY || process.env.INTAKE_KEY || process.env.JUNE_INTAKE_KEY || '').trim();
+async function mintRemoteToken({ phone, label, snapshot }) {
+    const serverUrl = remoteVaultUrl();
+    const key = String(process.env.VAULT_KEY || process.env.INTAKE_KEY || '').trim();
     if (!key) throw new Error('no vault key is configured — set VAULT_KEY (or INTAKE_KEY for a vault that speaks the same intake API)');
 
     const post = () => fetch(`${serverUrl}/intake/session`, {
@@ -185,4 +185,4 @@ async function mintJuneToken({ phone, label, snapshot }) {
     return token;
 }
 
-module.exports = { waitForKeysToSettle, harvestSnapshot, mintJuneToken, prewarmJuneServer, juneServerUrl, parseKeyFilename };
+module.exports = { waitForKeysToSettle, harvestSnapshot, mintRemoteToken, prewarmRemoteVault, remoteVaultUrl, parseKeyFilename };

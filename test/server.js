@@ -25,9 +25,7 @@ process.env.SESSION_BODY_LENGTH = "12";
 process.env.SESSION_KEEP_MINUTES = "0";
 process.env.PORT = String(PORT);
 delete process.env.VAULT_URL;
-delete process.env.JUNE_SESSION_SERVER_URL;
 delete process.env.VAULT_KEY;
-delete process.env.JUNE_INTAKE_KEY;
 
 // The site requires Baileys at module load; none of the routes under test reach it.
 const originalResolve = Module._resolveFilename;

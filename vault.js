@@ -9,8 +9,8 @@
  *
  * Remote: only when a vault is configured explicitly, both URL and key:
  *
- *   VAULT_URL=https://<vault-host>      (JUNE_SESSION_SERVER_URL also accepted)
- *   VAULT_KEY=<shared secret>           (INTAKE_KEY / JUNE_INTAKE_KEY also accepted)
+ *   VAULT_URL=https://<vault-host>
+ *   VAULT_KEY=<shared secret>           (INTAKE_KEY also accepted)
  *
  * The upstream build shipped a third-party URL and site key as built-in
  * defaults, which is precisely why its prefix could not be changed: the ID was
@@ -18,14 +18,14 @@
  * vault configured, nothing remote is contacted at all.
  */
 
-const { waitForKeysToSettle, harvestSnapshot, mintJuneToken, prewarmJuneServer } = require('./juneSession');
+const { waitForKeysToSettle, harvestSnapshot, mintRemoteToken, prewarmRemoteVault } = require('./remoteVault');
 const local = require('./localVault');
 
 function remoteConfig() {
-  const url = String(process.env.VAULT_URL || process.env.JUNE_SESSION_SERVER_URL || '')
+  const url = String(process.env.VAULT_URL || '')
     .trim()
     .replace(/\/+$/, '');
-  const key = String(process.env.VAULT_KEY || process.env.INTAKE_KEY || process.env.JUNE_INTAKE_KEY || '').trim();
+  const key = String(process.env.VAULT_KEY || process.env.INTAKE_KEY || '').trim();
   return url && key ? { url, key } : null;
 }
 
@@ -35,13 +35,13 @@ function mode() {
 
 /** Mint the session ID for a freshly harvested snapshot. */
 async function mintToken({ phone, snapshot, label }) {
-  if (remoteConfig()) return mintJuneToken({ phone, snapshot, label });
+  if (remoteConfig()) return mintRemoteToken({ phone, snapshot, label });
   return local.mintFromSnapshot({ phone, snapshot, label });
 }
 
 /** Wake a remote vault early (free-tier hosts sleep); no-op in local mode. */
 async function prewarm() {
-  if (remoteConfig()) await prewarmJuneServer();
+  if (remoteConfig()) await prewarmRemoteVault();
 }
 
 module.exports = Object.assign(

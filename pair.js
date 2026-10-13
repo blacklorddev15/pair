@@ -42,7 +42,7 @@ router.get('/', async (req, res) => {
     // Tracked so the page can poll /status/<id> and offer the token to copy.
     const request = requests.create({ number: num, mode: 'code' });
 
-    // Wake the June session server NOW — the user will spend the next
+    // Wake the remote vault NOW (no-op in local mode) — the user will spend the next
     // 30-60s typing the pairing code, and the server must be warm by the
     // time we mint the token (free-tier instances sleep when idle).
     prewarm().catch(() => {});
@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
     let reconnects = 0;
     const MAX_RECONNECTS = 3;
 
-    async function JUNEX() {
+    async function startPairing() {
         const { state, saveCreds } = await useMultiFileAuthState('./temp/' + id);
         try {
             // No hardcoded fallback version — a stale one makes WhatsApp
@@ -117,7 +117,7 @@ router.get('/', async (req, res) => {
                         const userJid = jidNormalizedUser(client.user.id);
                         const dir = __dirname + '/temp/' + id;
 
-                        // Re-warm the June server right now in case the wake-up
+                        // Re-warm the remote vault right now in case the wake-up
                         // from the code request is stale or failed — the mint is
                         // seconds away and must not pay a cold start.
                         prewarm().catch(() => {});
@@ -164,7 +164,7 @@ router.get('/', async (req, res) => {
                         reconnects += 1;
                         if (reconnects <= MAX_RECONNECTS) {
                             await delay(5000);
-                            JUNEX();
+                            startPairing();
                         } else {
                             removeFile('./temp/' + id);
                         }
@@ -182,7 +182,7 @@ router.get('/', async (req, res) => {
         }
     }
 
-    await JUNEX();
+    await startPairing();
 });
 
 module.exports = router;

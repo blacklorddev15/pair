@@ -54,16 +54,28 @@ rather the token only ever reach the phone, delete the token block from
 | `MAX_REQUESTS` | `200` | Oldest `/status` records are dropped past this |
 
 `VAULT_URL`/`VAULT_KEY` are the only way to leave local mode, and both must be
-set; `JUNE_SESSION_SERVER_URL`, `INTAKE_KEY` and `JUNE_INTAKE_KEY` are accepted as
-aliases so an existing setup can be pointed here unchanged. With no vault
-configured, no external service is contacted at all.
+set (`INTAKE_KEY` is accepted in place of `VAULT_KEY`, matching the vault in
+`../session-service`). With no vault configured, no external service is
+contacted at all.
+
+The June-era aliases (`JUNE_SESSION_SERVER_URL`, `JUNE_INTAKE_KEY`) were removed
+along with the June-X prefix — a deployment still carrying only those two names
+now silently mints locally instead of uploading to a vault.
 
 ## Wiring the bot
+
+The variable names below are the **bot's own** (`astro/utils/astroDb/sessionServer.js`
+and its panel config); they are deliberately not renamed here, because the
+deployed panel already holds those names.
 
 ```
 JUNE_SESSION_SERVER_URL=https://<this-service>.onrender.com
 SESSION_ID=Astro-X~XXXXXXXXXXXX
 ```
+
+The bot accepts `Astro-X~` IDs only. Its `HANDLE_PATTERN`,
+`HANDLE_BODY_STRIP` and `SESSION_ID_PREFIX_RE` no longer carry a
+`june-x`/`JUNE-X` alternative, so an ID in the old format is refused outright.
 
 The bot only needs this service while bootstrapping; after the first restore it
 keeps its own copy of the credentials. Point the bot at whichever host issued its

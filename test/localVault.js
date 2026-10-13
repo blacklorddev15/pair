@@ -24,7 +24,7 @@ process.env.SESSION_KEEP_MINUTES = "0";
 const vault = require("../localVault");
 
 // The bot's own handle check, copied verbatim.
-const BOT_HANDLE_PATTERN = /^(?:JUNE-X|ASTRO-X)~[A-Za-z0-9]{4,20}$/i;
+const BOT_HANDLE_PATTERN = /^ASTRO-X~[A-Za-z0-9]{4,20}$/i;
 
 const CREDS_TEXT = JSON.stringify({
   me: { id: "254705894984:1@s.whatsapp.net", name: "Astro" },
@@ -70,7 +70,7 @@ function check(name, fn) {
   check("isSessionId accepts the minted ID", () => assert.ok(vault.isSessionId(id)));
   check("isSessionId accepts a case-folded paste (bot pattern is i-flagged)", () =>
     assert.ok(vault.isSessionId(id.toLowerCase())));
-  check("isSessionId rejects the old JUNE-X~ prefix", () => assert.ok(!vault.isSessionId("JUNE-X~ABCDEFGHIJKL")));
+  check("isSessionId rejects a June-era prefix outright", () => assert.ok(!vault.isSessionId("JUNE-X~ABCDEFGHIJKL")));
   check("isSessionId rejects a 3-char body (bot needs 4-20)", () => assert.ok(!vault.isSessionId("Astro-X~ABC")));
 
   process.env.SESSION_PREFIX = "ASTRO X:~";
