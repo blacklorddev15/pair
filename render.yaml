@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: junex-ultra-session
+    runtime: node
+    plan: free
+    buildCommand: npm install --legacy-peer-deps
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JUNE_INTAKE_KEY
+        value: nNh7SQA0IeFb28NcaN3mRaW2G7F9Vi5mMdbKDIiK2Mk=
+    autoDeploy: true

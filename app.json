@@ -1,0 +1,20 @@
+{
+    "name": "JuneX Ultra",
+    "description": "JuneX Ultra WhatsApp session generator",
+    "logo": "https://files.catbox.moe/ojo6av.jpg",
+    "repository": "https://github.com/JuneXUltra/junex-ultra",
+    "keywords": ["JuneX", "WhatsApp", "session"],
+    "success_url": "/",
+    "buildpacks": [{ "url": "https://github.com/heroku/heroku-buildpack-nodejs#latest" }],
+    "env": {
+        "PORT": {
+            "description": "Port for the web app (Heroku sets this automatically)",
+            "required": false
+        },
+        "SESSION_SECRET": {
+            "description": "Secret key for session management",
+            "generator": "secret",
+            "required": false
+        }
+    }
+}

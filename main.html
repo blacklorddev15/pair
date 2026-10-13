@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JuneX Ultra Session</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Animated background ── */
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0a0a14;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Gradient orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.45;
+      animation: drift 14s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 520px; height: 520px; background: #5c2fa3; top: -120px; left: -120px; animation-duration: 16s; }
+    .orb-2 { width: 420px; height: 420px; background: #1a4fd4; bottom: -100px; right: -80px; animation-duration: 12s; animation-delay: -4s; }
+    .orb-3 { width: 300px; height: 300px; background: #0e9bd8; bottom: 30%; left: 10%; animation-duration: 18s; animation-delay: -8s; }
+    .orb-4 { width: 260px; height: 260px; background: #8b2be2; top: 35%; right: 8%; animation-duration: 10s; animation-delay: -2s; }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(40px, 30px) scale(1.12); }
+    }
+
+    /* Floating particles */
+    .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      animation: floatUp linear infinite;
+    }
+
+    @keyframes floatUp {
+      0%   { transform: translateY(0) scale(1);   opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 0.6; }
+      100% { transform: translateY(-100vh) scale(0.6); opacity: 0; }
+    }
+
+    /* ── Card ── */
+    .card {
+      position: relative;
+      z-index: 10;
+      width: 360px;
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 36px 28px 28px;
+      box-shadow:
+        0 8px 40px rgba(0,0,0,0.55),
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 1px 0 rgba(255,255,255,0.12) inset;
+      animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    /* Glowing corner accents */
+    .card::before,
+    .card::after {
+      content: '';
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 11;
+      animation: cornerPulse 3s ease-in-out infinite alternate;
+    }
+    /* Top-left + bottom-right share ::before via layered corners */
+    .card::before {
+      top: -1px; left: -1px;
+      border-top: 2px solid #a855f7;
+      border-left: 2px solid #a855f7;
+      border-top-left-radius: 24px;
+      box-shadow: -2px -2px 10px rgba(168,85,247,0.7), inset 0 0 6px rgba(168,85,247,0.15);
+    }
+    .card::after {
+      bottom: -1px; right: -1px;
+      border-bottom: 2px solid #3b82f6;
+      border-right: 2px solid #3b82f6;
+      border-bottom-right-radius: 24px;
+      box-shadow: 2px 2px 10px rgba(59,130,246,0.7), inset 0 0 6px rgba(59,130,246,0.15);
+    }
+    .card .corner-tr,
+    .card .corner-bl {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      pointer-events: none;
+      z-index: 11;
+      animation: cornerPulse 3s ease-in-out infinite alternate;
+    }
+    .card .corner-tr {
+      top: -1px; right: -1px;
+      border-top: 2px solid #6366f1;
+      border-right: 2px solid #6366f1;
+      border-top-right-radius: 24px;
+      box-shadow: 2px -2px 10px rgba(99,102,241,0.65);
+      animation-delay: 0.4s;
+    }
+    .card .corner-bl {
+      bottom: -1px; left: -1px;
+      border-bottom: 2px solid #8b5cf6;
+      border-left: 2px solid #8b5cf6;
+      border-bottom-left-radius: 24px;
+      box-shadow: -2px 2px 10px rgba(139,92,246,0.65);
+      animation-delay: 0.8s;
+    }
+
+    @keyframes cornerPulse {
+      from { opacity: 0.6; filter: brightness(1); }
+      to   { opacity: 1;   filter: brightness(1.5); }
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(32px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .card-header .icon-ring {
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5c2fa3, #1a6fd4);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+      box-shadow: 0 4px 20px rgba(92,47,163,0.6);
+    }
+    .card-header .icon-ring i { color: #fff; font-size: 22px; }
+
+    .card-header h2 { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 0.04em; }
+    .card-header p  { color: rgba(255,255,255,0.45); font-size: 12px; margin-top: 4px; }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 24px;
+      gap: 4px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 9px 0;
+      border: none;
+      border-radius: 9px;
+      background: transparent;
+      color: rgba(255,255,255,0.45);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+      letter-spacing: 0.04em;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #5c2fa3, #1a6fd4);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(92,47,163,0.5);
+    }
+    .tab-btn:not(.active):hover { color: rgba(255,255,255,0.75); }
+
+    /* ── Panels ── */
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* QR Panel */
+    .qr-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .qr-box {
+      width: 200px; height: 200px;
+      background: #fff;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    .qr-box img { width: 100%; height: 100%; object-fit: contain; }
+    .qr-box .qr-placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: #888; font-size: 12px;
+    }
+    .qr-box .qr-placeholder i { font-size: 36px; color: #bbb; }
+
+    .qr-hint { color: rgba(255,255,255,0.5); font-size: 11px; text-align: center; line-height: 1.6; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #5c2fa3, #1a6fd4);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 16px rgba(26,111,212,0.4);
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    /* Pair Panel */
+    .pair-wrap { display: flex; flex-direction: column; gap: 14px; }
+
+    .input-row {
+      display: flex;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 11px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .input-row:focus-within { border-color: rgba(92,47,163,0.7); }
+
+    .input-row input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 13px 14px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+    }
+    .input-row input::placeholder { color: rgba(255,255,255,0.3); }
+
+    .result-box {
+      min-height: 44px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 10px 14px;
+      text-align: center;
+    }
+    .result-box .code-display {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      color: #fff;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .result-box .code-display:hover { color: #7eb8ff; }
+    .result-box .hint-text { color: rgba(255,255,255,0.35); font-size: 12px; }
+    .result-box .error-text { color: #ff6b6b; font-size: 13px; }
+    .result-box .loading-text { color: rgba(255,255,255,0.5); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+
+    .copy-hint { color: rgba(120,184,255,0.7); font-size: 10px; margin-top: 2px; }
+
+    /* Instructions */
+    .instructions {
+      display: none;
+      background: rgba(26,111,212,0.12);
+      border: 1px solid rgba(26,111,212,0.3);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .instructions.show { display: block; animation: fadeIn 0.3s ease; }
+    .instructions p { color: #c8d8f0; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .instructions ol { color: #d0dff5; font-size: 11px; padding-left: 16px; line-height: 1.9; }
+    .instructions ol span { color: #7eb8ff; font-weight: 700; }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+    /* GitHub button */
+    .github-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 12;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.7);
+      font-size: 16px;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+      backdrop-filter: blur(8px);
+    }
+    .github-btn:hover {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      transform: scale(1.1);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+    .github-btn:active { transform: scale(0.95); }
+
+    /* Footer */
+    .card-footer { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.2); font-size: 11px; letter-spacing: 0.06em; }
+
+    @media (max-width: 400px) {
+      .card { width: calc(100vw - 32px); padding: 28px 18px 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Card -->
+  <div class="card">
+    <div class="corner-tr"></div>
+    <div class="corner-bl"></div>
+    <div class="card-header">
+      <a class="icon-ring" href="https://github.com/Vinpink2/June-Ultra" target="_blank" rel="noopener" title="View on GitHub">
+        <i class="fa-brands fa-github"></i>
+      </a>
+      <h2>JuneX Ultra Session</h2>
+      <p>Link your WhatsApp account</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-pair" onclick="switchTab('pair')">
+        <i class="fa fa-mobile-screen-button"></i>&nbsp; Pair Code
+      </button>
+      <button class="tab-btn" id="tab-qr" onclick="switchTab('qr')">
+        <i class="fa fa-qrcode"></i>&nbsp; QR Scan
+      </button>
+    </div>
+
+    <!-- QR Panel -->
+    <div class="panel" id="panel-qr">
+      <div class="qr-wrap">
+        <div class="qr-box" id="qr-box">
+          <div class="qr-placeholder" id="qr-placeholder">
+            <i class="fa fa-qrcode"></i>
+            <span>Tap below to load</span>
+          </div>
+          <img id="qr-img" style="display:none" alt="WhatsApp QR Code">
+        </div>
+        <div class="qr-hint" id="qr-hint">Scan with WhatsApp → Linked Devices → Link a Device</div>
+        <button class="btn-primary" id="qr-btn" onclick="loadQR()">
+          <i class="fa fa-rotate"></i>&nbsp; Generate QR Code
+        </button>
+      </div>
+    </div>
+
+    <!-- Pair Panel -->
+    <div class="panel active" id="panel-pair">
+      <div class="pair-wrap">
+        <div class="input-row">
+          <input type="tel" id="phone" placeholder="2547xxxxxxxx (with country code)">
+        </div>
+        <button class="btn-primary" id="pair-btn" onclick="requestCode()">
+          <i class="fa fa-paper-plane"></i>&nbsp; Get Pairing Code
+        </button>
+        <div class="result-box" id="result-box">
+          <span class="hint-text">Your code will appear here</span>
+        </div>
+        <div class="instructions" id="instructions">
+          <p>📋 HOW TO USE YOUR CODE</p>
+          <ol>
+            <li>Open <span>WhatsApp</span> on your phone</li>
+            <li>Tap <span>Linked Devices</span> → <span>Link a Device</span></li>
+            <li>Tap <span>"Link with phone number instead"</span></li>
+            <li>Enter the <span>8-digit code</span> shown above</li>
+            <li>Your <span>session ID</span> will arrive on WhatsApp</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-footer">⚡ JuneX Ultra &mdash; Powered by Supreme</div>
+  </div>
+
+  <script>
+    // ── Particles ──
+    const pc = document.getElementById('particles');
+    for (let i = 0; i < 28; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = Math.random() * 5 + 2;
+      p.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random() * 100}%;
+        bottom:-${size}px;
+        animation-duration:${Math.random() * 14 + 8}s;
+        animation-delay:-${Math.random() * 14}s;
+        opacity:${Math.random() * 0.4 + 0.1};
+      `;
+      pc.appendChild(p);
+    }
+
+    // ── Tab switching ──
+    function switchTab(name) {
+      ['qr','pair'].forEach(t => {
+        document.getElementById('tab-' + t).classList.toggle('active', t === name);
+        document.getElementById('panel-' + t).classList.toggle('active', t === name);
+      });
+    }
+
+    // ── QR Code ──
+    let qrLoading = false;
+    function loadQR() {
+      if (qrLoading) return;
+      qrLoading = true;
+      const btn = document.getElementById('qr-btn');
+      const img = document.getElementById('qr-img');
+      const placeholder = document.getElementById('qr-placeholder');
+      const hint = document.getElementById('qr-hint');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="display:inline-block;vertical-align:middle"></span>&nbsp; Loading…';
+      placeholder.innerHTML = '<div class="spinner" style="width:32px;height:32px;border-width:3px"></div>';
+      img.style.display = 'none';
+      hint.textContent = 'Connecting to WhatsApp…';
+
+      const ts = Date.now();
+      img.onload = () => {
+        placeholder.style.display = 'none';
+        img.style.display = 'block';
+        hint.textContent = 'Scan with WhatsApp → Linked Devices → Link a Device';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-rotate"></i>&nbsp; Refresh QR';
+        qrLoading = false;
+      };
+      img.onerror = () => {
+        placeholder.innerHTML = '<i class="fa fa-triangle-exclamation" style="color:#ff6b6b"></i><span style="color:#ff6b6b">Failed — try again</span>';
+        hint.textContent = 'Could not connect. Please retry.';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-rotate"></i>&nbsp; Retry';
+        qrLoading = false;
+      };
+      img.src = '/qr?t=' + ts;
+    }
+
+    // ── Pairing Code ──
+    async function requestCode() {
+      const input = document.getElementById('phone');
+      const btn   = document.getElementById('pair-btn');
+      const box   = document.getElementById('result-box');
+      const instr = document.getElementById('instructions');
+      const num   = input.value.replace(/[^0-9]/g, '');
+
+      instr.classList.remove('show');
+
+      if (!num) {
+        box.innerHTML = '<span class="error-text">⚠ Please enter your phone number</span>';
+        return;
+      }
+      if (num.length < 10) {
+        box.innerHTML = '<span class="error-text">⚠ Number too short — include country code</span>';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="display:inline-block;vertical-align:middle"></span>&nbsp; Requesting…';
+      box.innerHTML = '<span class="loading-text"><div class="spinner"></div> Please wait…</span>';
+
+      try {
+        const res  = await fetch('/code?number=' + num);
+        const data = await res.json();
+        const code = data.code || 'Service Unavailable';
+
+        if (data.code && data.code !== 'Service Currently Unavailable') {
+          box.innerHTML = `
+            <div>
+              <div class="code-display" id="code-val" title="Tap to copy" onclick="copyCode('${code}')">${code}</div>
+              <div class="copy-hint">tap to copy</div>
+            </div>`;
+          instr.classList.add('show');
+        } else {
+          box.innerHTML = '<span class="error-text">⚠ ' + code + '</span>';
+        }
+      } catch (e) {
+        box.innerHTML = '<span class="error-text">⚠ Network error — try again</span>';
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa fa-paper-plane"></i>&nbsp; Get Pairing Code';
+    }
+
+    async function copyCode(code) {
+      try {
+        await navigator.clipboard.writeText(code);
+        const el = document.getElementById('code-val');
+        const orig = el.textContent;
+        el.textContent = '✔ COPIED';
+        el.style.color = '#7eb8ff';
+        setTimeout(() => { el.textContent = orig; el.style.color = ''; }, 1200);
+      } catch (_) {}
+    }
+
+    // Allow Enter key on phone input
+    document.getElementById('phone').addEventListener('keydown', e => {
+      if (e.key === 'Enter') requestCode();
+    });
+  </script>
+</body>
+</html>

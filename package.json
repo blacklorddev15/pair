@@ -1,0 +1,26 @@
+{
+    "name": "junex-ultra-session",
+    "description": "JuneX Ultra WhatsApp session generator",
+    "version": "1.0.0",
+    "main": "./index.js",
+    "engines": {
+        "npm": ">=9.7.2",
+        "node": ">=20.0.0"
+    },
+    "scripts": {
+        "start": "node index.js"
+    },
+    "author": "JuneX Ultra",
+    "license": "GPL-3.0",
+    "dependencies": {
+        "@whiskeysockets/baileys": "7.0.0-rc14",
+        "qrcode": "^1.5.3",
+        "awesome-phonenumber": "^2.64.0",
+        "pino": "^8.1.0",
+        "phone": "3.1.30",
+        "jimp": "1.6.0",
+        "body-parser": "^1.20.1",
+        "express": "^4.18.1",
+        "path": "^0.12.7"
+    }
+}
