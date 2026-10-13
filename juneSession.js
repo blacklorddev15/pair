@@ -1,23 +1,23 @@
 'use strict';
 
 /**
- * JuneSession — bridge between this pairing site and the June X
- * session server vault (one-shot vending, canonical JUNE-X~ handles).
+ * Remote vault bridge — used ONLY when a vault is configured explicitly in
+ * vault.js. Local minting (localVault.js) is the default and does not touch any
+ * of this.
  *
  * After WhatsApp links, the site harvests the Baileys auth folder into a
- * snapshot (the exact shape June Ultra's restore path expects) and uploads
- * it to the Session Server intake endpoint, which stores the creds blob
- * and mints the official JUNE-X~ session handle. The site then delivers
- * that handle to the user — the same credential the main pairing site
- * (https://burning-lorena-eminentbo-ede53cc1.koyeb.app/pair) produces,
- * backed by the same database.
+ * snapshot and uploads it to a vault's intake endpoint, which stores the creds
+ * blob and returns the session handle that vault mints. The handle then belongs
+ * to that vault: it is resolved against that host, and its prefix is whatever
+ * that operator chose — which is why nothing here has a built-in default.
  *
- * Environment variables (set them on the hosting panel):
- *   JUNE_INTAKE_KEY          Optional — overrides the baked-in site key
- *                            (set this on the panel to rotate the key
- *                            without changing the code).
- *   JUNE_SESSION_SERVER_URL  Optional — defaults to the primary June
- *                            session server.
+ * Environment variables:
+ *   VAULT_URL      Where to upload (JUNE_SESSION_SERVER_URL also accepted).
+ *   VAULT_KEY      The vault's shared secret (INTAKE_KEY / JUNE_INTAKE_KEY
+ *                  also accepted).
+ *
+ * Both are required: half a configuration silently falls back to local minting
+ * rather than contacting a half-known host.
  */
 
 const fs = require('fs');
