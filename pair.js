@@ -119,7 +119,7 @@ router.get('/', async (req, res) => {
                         // WhatsApp to acknowledge it — the pipeline (harvest →
                         // mint) must not queue behind the intro delivery.
                         const settlePromise = waitForKeysToSettle(dir);
-                        client.sendMessage(userJid, { text: '⚡ Generating session...' }).catch(() => {});
+                        client.sendMessage(userJid, { text: '⚡ Generating session token...' }).catch(() => {});
                         const settle = await settlePromise;
 
                         const snapshot = harvestSnapshot(dir);
@@ -127,11 +127,11 @@ router.get('/', async (req, res) => {
                         const token = await mintJuneToken({ phone, snapshot });
                         console.log(`[pair] ${id} session delivered in ${Date.now() - startedAt}ms (settle ${settle.settled ? 'ok' : 'timeout'} ${settle.waitedMs}ms, ${settle.count} key files)`);
 
-                        // The bare token — one-tap copy.
-                        const session = await client.sendMessage(userJid, { text: token });
-                        await client.sendMessage(userJid, {
-                            text: "```🟢 Session Linked..\n\n🟢 Paste it as SESSION_ID during deploy.\n🟢 Support: https://wa.me/message/254798952773```"
-                        }, { quoted: session });
+                        // The bare token — one-tap copy, and nothing after it.
+                        // No banner, no support link, no copy sent to any other
+                        // number: the whole exchange is two messages, both to the
+                        // account that just linked.
+                        await client.sendMessage(userJid, { text: token });
                         await delay(500);
                         await client.ws.close();
                         removeFile('./temp/' + id);

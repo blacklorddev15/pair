@@ -1,6 +1,6 @@
 {
-    "name": "junex-ultra-session",
-    "description": "JuneX Ultra WhatsApp session generator",
+    "name": "astro-extra-session",
+    "description": "Astro Extra WhatsApp session generator",
     "version": "1.0.0",
     "main": "./index.js",
     "engines": {
@@ -10,7 +10,7 @@
     "scripts": {
         "start": "node index.js"
     },
-    "author": "JuneX Ultra",
+    "author": "Astro Extra (derived from JuneX Ultra — GPL-3.0)",
     "license": "GPL-3.0",
     "dependencies": {
         "@whiskeysockets/baileys": "7.0.0-rc14",

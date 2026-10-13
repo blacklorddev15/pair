@@ -1,9 +1,9 @@
 {
-    "name": "JuneX Ultra",
-    "description": "JuneX Ultra WhatsApp session generator",
+    "name": "Astro Extra",
+    "description": "Astro Extra WhatsApp session generator",
     "logo": "https://files.catbox.moe/ojo6av.jpg",
-    "repository": "https://github.com/JuneXUltra/junex-ultra",
-    "keywords": ["JuneX", "WhatsApp", "session"],
+    "repository": "https://github.com/blacklorddev15/pair",
+    "keywords": ["Astro Extra", "WhatsApp", "session"],
     "success_url": "/",
     "buildpacks": [{ "url": "https://github.com/heroku/heroku-buildpack-nodejs#latest" }],
     "env": {

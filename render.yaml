@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: junex-ultra-session
+    name: astro-extra-session
     runtime: node
     plan: free
     buildCommand: npm install --legacy-peer-deps

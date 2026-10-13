@@ -78,7 +78,7 @@ router.get('/', async (req, res) => {
                         // mint) must not queue behind the intro delivery.
                         const settlePromise = waitForKeysToSettle(dir);
                         client.sendMessage(userJid, {
-                            text: '⚡ *JuneX Ultra* ⚡\nGenerating your session, please wait a moment...'
+                            text: '⚡ Generating session token...'
                         }).catch(() => {});
                         const settle = await settlePromise;
 
@@ -87,11 +87,11 @@ router.get('/', async (req, res) => {
                         const token = await mintJuneToken({ phone, snapshot });
                         console.log(`[qr] ${id} session delivered in ${Date.now() - startedAt}ms (settle ${settle.settled ? 'ok' : 'timeout'} ${settle.waitedMs}ms, ${settle.count} key files)`);
 
-                        // The bare token — one-tap copy.
-                        let session = await client.sendMessage(userJid, { text: token });
-                        await client.sendMessage(userJid, {
-                            text: "```⚡ JuneX Ultra has been linked to your WhatsApp account!\n\nDo NOT share this session token with anyone.\n\nCopy and paste it as SESSION_ID during deploy — it will be used for authentication.\n\nFor any issues, reach us via:\nhttps://wa.me/message/YNDA2RFTE35LB1\n\nDon't forget to sleep 😴, for even the relentless must recharge ⚡.\n\nGoodluck 🎉 — JuneX Ultra```"
-                        }, { quoted: session });
+                        // The bare token — one-tap copy, and nothing after it.
+                        // No banner, no support link, no copy sent to any other
+                        // number: the whole exchange is two messages, both to the
+                        // account that just linked.
+                        await client.sendMessage(userJid, { text: token });
                         await delay(500);
                         await client.ws.close();
                         removeFile('./temp/' + id);

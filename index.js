@@ -15,7 +15,7 @@ app.use(express.static(__path));
 // Simple version marker so anyone can check which code a deployment runs:
 //   curl https://<site>/version
 // Bump this on every meaningful change.
-const VERSION = 'pair-2026.09.12-5';
+const VERSION = 'astro-extra-2026.10.13';
 
 // Baileys' bundled libsignal dumps "Closing session: SessionEntry {...}"
 // (including private key buffers) straight to console.log when a pairing

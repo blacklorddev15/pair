@@ -2,57 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>JuneX Ultra Session</title>
+  <title>Astro Extra — Session Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0d0a">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #0b0d0a;
+      --panel: #14170f;
+      --panel-2: #1a1e14;
+      --line: #2b3122;
+      --olive: #4b5a3a;
+      --olive-2: #6b7d55;
+      --gold: #c9a24b;
+      --gold-2: #e7cd8a;
+      --ink: #e9e7dc;
+      --muted: #98a08a;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── Animated background ── */
+    /* ── Tactical background ── */
     body {
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #0a0a14;
-      overflow: hidden;
+      padding: 28px 16px;
+      font-family: 'Oswald', 'Segoe UI', Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 0%, rgba(75, 90, 58, 0.28), transparent 55%),
+        radial-gradient(circle at 88% 12%, rgba(201, 162, 75, 0.14), transparent 50%),
+        repeating-linear-gradient(135deg, rgba(107, 125, 85, 0.05) 0 18px, transparent 18px 38px),
+        repeating-linear-gradient(45deg, rgba(201, 162, 75, 0.035) 0 22px, transparent 22px 46px),
+        linear-gradient(#0b0d0a, #10130c 60%, #0b0d0a);
+      background-attachment: fixed;
       position: relative;
+      overflow-x: hidden;
     }
 
-    /* Gradient orbs */
-    .orb {
+    /* faint scan grid */
+    body::before {
+      content: '';
       position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.45;
-      animation: drift 14s ease-in-out infinite alternate;
+      inset: 0;
       pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 44px 44px, 44px 44px;
       z-index: 0;
     }
-    .orb-1 { width: 520px; height: 520px; background: #5c2fa3; top: -120px; left: -120px; animation-duration: 16s; }
-    .orb-2 { width: 420px; height: 420px; background: #1a4fd4; bottom: -100px; right: -80px; animation-duration: 12s; animation-delay: -4s; }
-    .orb-3 { width: 300px; height: 300px; background: #0e9bd8; bottom: 30%; left: 10%; animation-duration: 18s; animation-delay: -8s; }
-    .orb-4 { width: 260px; height: 260px; background: #8b2be2; top: 35%; right: 8%; animation-duration: 10s; animation-delay: -2s; }
 
-    @keyframes drift {
-      from { transform: translate(0, 0) scale(1); }
-      to   { transform: translate(40px, 30px) scale(1.12); }
-    }
-
-    /* Floating particles */
-    .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .dust { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
     .particle {
       position: absolute;
       border-radius: 50%;
-      background: rgba(255,255,255,0.18);
+      background: rgba(201, 162, 75, 0.5);
       animation: floatUp linear infinite;
     }
-
     @keyframes floatUp {
       0%   { transform: translateY(0) scale(1);   opacity: 0; }
-      10%  { opacity: 1; }
-      90%  { opacity: 0.6; }
+      10%  { opacity: 0.7; }
+      90%  { opacity: 0.35; }
       100% { transform: translateY(-100vh) scale(0.6); opacity: 0; }
     }
 
@@ -60,369 +76,348 @@
     .card {
       position: relative;
       z-index: 10;
-      width: 360px;
-      background: rgba(255, 255, 255, 0.07);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 24px;
-      padding: 36px 28px 28px;
-      box-shadow:
-        0 8px 40px rgba(0,0,0,0.55),
-        0 0 0 1px rgba(255,255,255,0.04) inset,
-        0 1px 0 rgba(255,255,255,0.12) inset;
-      animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) both;
+      width: 400px;
+      max-width: 100%;
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(201,162,75,0.08) inset;
+      animation: cardIn 0.6s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(26px); }
+      to   { opacity: 1; transform: none; }
     }
 
-    /* Glowing corner accents */
-    .card::before,
-    .card::after {
+    /* gold corner brackets */
+    .card .bracket {
+      position: absolute;
+      width: 26px; height: 26px;
+      border: 2px solid var(--gold);
+      opacity: 0.75;
+      pointer-events: none;
+      z-index: 14;
+    }
+    .bracket.tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+    .bracket.tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
+    .bracket.bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+    .bracket.br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      height: 210px;
+      background: #050704 url('astro-hero.jpg') center 28% / cover no-repeat;
+      border-bottom: 2px solid var(--gold);
+    }
+    .hero::after {
       content: '';
       position: absolute;
-      width: 48px;
-      height: 48px;
-      border-radius: 4px;
-      pointer-events: none;
-      z-index: 11;
-      animation: cornerPulse 3s ease-in-out infinite alternate;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(5,7,4,0.35) 0%, rgba(5,7,4,0.55) 45%, rgba(11,13,10,0.97) 100%);
     }
-    /* Top-left + bottom-right share ::before via layered corners */
-    .card::before {
-      top: -1px; left: -1px;
-      border-top: 2px solid #a855f7;
-      border-left: 2px solid #a855f7;
-      border-top-left-radius: 24px;
-      box-shadow: -2px -2px 10px rgba(168,85,247,0.7), inset 0 0 6px rgba(168,85,247,0.15);
-    }
-    .card::after {
-      bottom: -1px; right: -1px;
-      border-bottom: 2px solid #3b82f6;
-      border-right: 2px solid #3b82f6;
-      border-bottom-right-radius: 24px;
-      box-shadow: 2px 2px 10px rgba(59,130,246,0.7), inset 0 0 6px rgba(59,130,246,0.15);
-    }
-    .card .corner-tr,
-    .card .corner-bl {
+    .hero-inner {
       position: absolute;
-      width: 48px;
-      height: 48px;
-      pointer-events: none;
-      z-index: 11;
-      animation: cornerPulse 3s ease-in-out infinite alternate;
-    }
-    .card .corner-tr {
-      top: -1px; right: -1px;
-      border-top: 2px solid #6366f1;
-      border-right: 2px solid #6366f1;
-      border-top-right-radius: 24px;
-      box-shadow: 2px -2px 10px rgba(99,102,241,0.65);
-      animation-delay: 0.4s;
-    }
-    .card .corner-bl {
-      bottom: -1px; left: -1px;
-      border-bottom: 2px solid #8b5cf6;
-      border-left: 2px solid #8b5cf6;
-      border-bottom-left-radius: 24px;
-      box-shadow: -2px 2px 10px rgba(139,92,246,0.65);
-      animation-delay: 0.8s;
-    }
-
-    @keyframes cornerPulse {
-      from { opacity: 0.6; filter: brightness(1); }
-      to   { opacity: 1;   filter: brightness(1.5); }
-    }
-
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(32px) scale(0.96); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .card-header {
+      inset: auto 0 14px 0;
+      z-index: 2;
       text-align: center;
-      margin-bottom: 24px;
+      padding: 0 18px;
+    }
+    .eyebrow {
+      font-size: 9.5px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .hero-inner h1 {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, var(--gold-2), var(--gold) 55%, #9c7a2e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+      line-height: 1.1;
+    }
+    .hero-rule {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .hero-rule span {
+      display: block;
+      width: 46px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold));
+    }
+    .hero-rule span:last-child { background: linear-gradient(90deg, var(--gold), transparent); }
+    .hero-rule i { color: var(--gold); font-size: 7px; }
+    .hero-sub {
+      margin-top: 6px;
+      font-size: 10px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
-    .card-header .icon-ring {
-      width: 58px; height: 58px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #5c2fa3, #1a6fd4);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 12px;
-      box-shadow: 0 4px 20px rgba(92,47,163,0.6);
-    }
-    .card-header .icon-ring i { color: #fff; font-size: 22px; }
+    /* ── Body ── */
+    .card-body { padding: 20px 22px 22px; }
 
-    .card-header h2 { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 0.04em; }
-    .card-header p  { color: rgba(255,255,255,0.45); font-size: 12px; margin-top: 4px; }
-
-    /* ── Tabs ── */
     .tabs {
       display: flex;
-      background: rgba(0,0,0,0.3);
-      border-radius: 12px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--line);
+      border-radius: 4px;
       padding: 4px;
-      margin-bottom: 24px;
+      margin-bottom: 18px;
       gap: 4px;
     }
     .tab-btn {
       flex: 1;
-      padding: 9px 0;
+      padding: 10px 0;
       border: none;
-      border-radius: 9px;
+      border-radius: 3px;
       background: transparent;
-      color: rgba(255,255,255,0.45);
-      font-size: 13px;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 12.5px;
       font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: all 0.25s;
-      letter-spacing: 0.04em;
+      transition: all 0.2s;
     }
     .tab-btn.active {
-      background: linear-gradient(135deg, #5c2fa3, #1a6fd4);
-      color: #fff;
-      box-shadow: 0 2px 12px rgba(92,47,163,0.5);
+      background: linear-gradient(180deg, var(--olive-2), var(--olive));
+      color: #f4f2e8;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,162,75,0.35) inset;
     }
-    .tab-btn:not(.active):hover { color: rgba(255,255,255,0.75); }
+    .tab-btn:not(.active):hover { color: var(--ink); }
 
-    /* ── Panels ── */
     .panel { display: none; }
-    .panel.active { display: block; animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .panel.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
-    /* QR Panel */
-    .qr-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-    }
+    /* QR */
+    .qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
     .qr-box {
       width: 200px; height: 200px;
       background: #fff;
-      border-radius: 14px;
+      border-radius: 4px;
+      border: 2px solid var(--gold);
       display: flex; align-items: center; justify-content: center;
       overflow: hidden;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 6px 22px rgba(0,0,0,0.55);
     }
     .qr-box img { width: 100%; height: 100%; object-fit: contain; }
     .qr-box .qr-placeholder {
       display: flex; flex-direction: column; align-items: center; gap: 8px;
-      color: #888; font-size: 12px;
+      color: #7b8168; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
     }
-    .qr-box .qr-placeholder i { font-size: 36px; color: #bbb; }
-
-    .qr-hint { color: rgba(255,255,255,0.5); font-size: 11px; text-align: center; line-height: 1.6; }
+    .qr-box .qr-placeholder i { font-size: 34px; color: #b3b8a1; }
+    .qr-hint { color: var(--muted); font-size: 11px; text-align: center; line-height: 1.6; letter-spacing: 0.04em; }
 
     .btn-primary {
       width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 11px;
-      background: linear-gradient(135deg, #5c2fa3, #1a6fd4);
-      color: #fff;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.07em;
+      padding: 13px;
+      border: 1px solid rgba(201,162,75,0.5);
+      border-radius: 4px;
+      background: linear-gradient(180deg, var(--olive-2), var(--olive));
+      color: #f6f4ea;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.15s;
-      box-shadow: 0 4px 16px rgba(26,111,212,0.4);
+      transition: filter 0.2s, transform 0.15s;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.45);
     }
-    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
-    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:hover { filter: brightness(1.12); }
+    .btn-primary:active { transform: scale(0.98); }
     .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
-    /* Pair Panel */
-    .pair-wrap { display: flex; flex-direction: column; gap: 14px; }
+    /* Pair */
+    .pair-wrap { display: flex; flex-direction: column; gap: 12px; }
 
     .input-row {
       display: flex;
-      background: rgba(0,0,0,0.35);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 11px;
+      background: rgba(0,0,0,0.42);
+      border: 1px solid var(--line);
+      border-radius: 4px;
       overflow: hidden;
       transition: border-color 0.2s;
     }
-    .input-row:focus-within { border-color: rgba(92,47,163,0.7); }
-
+    .input-row:focus-within { border-color: rgba(201,162,75,0.65); }
     .input-row input {
       flex: 1;
       background: transparent;
       border: none;
       padding: 13px 14px;
-      color: #fff;
-      font-size: 15px;
+      color: var(--ink);
+      font-family: 'Share Tech Mono', ui-monospace, Menlo, monospace;
+      font-size: 14px;
       outline: none;
+      letter-spacing: 0.06em;
     }
-    .input-row input::placeholder { color: rgba(255,255,255,0.3); }
+    .input-row input::placeholder { color: rgba(152,160,138,0.55); }
 
     .result-box {
-      min-height: 44px;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 11px;
+      min-height: 46px;
+      background: rgba(0,0,0,0.38);
+      border: 1px solid var(--line);
+      border-radius: 4px;
       display: flex; align-items: center; justify-content: center;
       padding: 10px 14px;
       text-align: center;
     }
     .result-box .code-display {
+      font-family: 'Share Tech Mono', ui-monospace, Menlo, monospace;
       font-size: 26px;
-      font-weight: 800;
-      letter-spacing: 0.2em;
-      color: #fff;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      color: var(--gold-2);
       cursor: pointer;
       transition: color 0.2s;
     }
-    .result-box .code-display:hover { color: #7eb8ff; }
-    .result-box .hint-text { color: rgba(255,255,255,0.35); font-size: 12px; }
-    .result-box .error-text { color: #ff6b6b; font-size: 13px; }
-    .result-box .loading-text { color: rgba(255,255,255,0.5); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .result-box .code-display:hover { color: #fff2cc; }
+    .result-box .hint-text { color: var(--muted); font-size: 11.5px; letter-spacing: 0.06em; }
+    .result-box .error-text { color: #e08b7a; font-size: 12.5px; }
+    .result-box .loading-text { color: var(--muted); font-size: 12.5px; display: flex; align-items: center; gap: 8px; }
 
-    .copy-hint { color: rgba(120,184,255,0.7); font-size: 10px; margin-top: 2px; }
+    .copy-hint { color: rgba(201,162,75,0.75); font-size: 10px; margin-top: 3px; letter-spacing: 0.16em; text-transform: uppercase; }
 
-    /* Instructions */
     .instructions {
       display: none;
-      background: rgba(26,111,212,0.12);
-      border: 1px solid rgba(26,111,212,0.3);
-      border-radius: 10px;
+      background: rgba(75,90,58,0.16);
+      border: 1px solid rgba(201,162,75,0.28);
+      border-left: 3px solid var(--gold);
+      border-radius: 3px;
       padding: 12px 14px;
     }
-    .instructions.show { display: block; animation: fadeIn 0.3s ease; }
-    .instructions p { color: #c8d8f0; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 6px; }
-    .instructions ol { color: #d0dff5; font-size: 11px; padding-left: 16px; line-height: 1.9; }
-    .instructions ol span { color: #7eb8ff; font-weight: 700; }
+    .instructions.show { display: block; animation: fadeIn 0.25s ease; }
+    .instructions p { color: var(--gold-2); font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 7px; }
+    .instructions ol { color: #cdd2be; font-size: 11.5px; padding-left: 16px; line-height: 1.9; }
+    .instructions ol span { color: var(--gold-2); font-weight: 600; }
 
-    /* Spinner */
     @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    .spinner { width: 15px; height: 15px; border: 2px solid rgba(201,162,75,0.3); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
 
-    /* GitHub button */
-    .github-btn {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      z-index: 12;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(255,255,255,0.7);
-      font-size: 16px;
-      text-decoration: none;
-      transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
-      backdrop-filter: blur(8px);
+    .card-footer {
+      text-align: center;
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: rgba(152,160,138,0.6);
+      font-size: 9.5px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
     }
-    .github-btn:hover {
-      background: rgba(255,255,255,0.2);
-      color: #fff;
-      transform: scale(1.1);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-    }
-    .github-btn:active { transform: scale(0.95); }
 
-    /* Footer */
-    .card-footer { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.2); font-size: 11px; letter-spacing: 0.06em; }
-
-    @media (max-width: 400px) {
-      .card { width: calc(100vw - 32px); padding: 28px 18px 22px; }
+    @media (max-width: 420px) {
+      .card { width: 100%; }
+      .hero { height: 180px; }
+      .hero-inner h1 { font-size: 25px; letter-spacing: 0.12em; }
+      .card-body { padding: 18px 16px 20px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Background orbs -->
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-  <div class="orb orb-4"></div>
+  <div class="dust" id="particles"></div>
 
-  <!-- Particles -->
-  <div class="particles" id="particles"></div>
-
-  <!-- Card -->
   <div class="card">
-    <div class="corner-tr"></div>
-    <div class="corner-bl"></div>
-    <div class="card-header">
-      <a class="icon-ring" href="https://github.com/Vinpink2/June-Ultra" target="_blank" rel="noopener" title="View on GitHub">
-        <i class="fa-brands fa-github"></i>
-      </a>
-      <h2>JuneX Ultra Session</h2>
-      <p>Link your WhatsApp account</p>
+    <div class="bracket tl"></div>
+    <div class="bracket tr"></div>
+    <div class="bracket bl"></div>
+    <div class="bracket br"></div>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-inner">
+        <div class="eyebrow">Session Terminal</div>
+        <h1>Astro Extra</h1>
+        <div class="hero-rule"><span></span><i class="fa fa-certificate"></i><span></span></div>
+        <div class="hero-sub">Link your WhatsApp account</div>
+      </div>
     </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" id="tab-pair" onclick="switchTab('pair')">
-        <i class="fa fa-mobile-screen-button"></i>&nbsp; Pair Code
-      </button>
-      <button class="tab-btn" id="tab-qr" onclick="switchTab('qr')">
-        <i class="fa fa-qrcode"></i>&nbsp; QR Scan
-      </button>
-    </div>
+    <div class="card-body">
+      <div class="tabs">
+        <button class="tab-btn active" id="tab-pair" onclick="switchTab('pair')">
+          <i class="fa fa-mobile-screen-button"></i>&nbsp; Pair Code
+        </button>
+        <button class="tab-btn" id="tab-qr" onclick="switchTab('qr')">
+          <i class="fa fa-qrcode"></i>&nbsp; QR Scan
+        </button>
+      </div>
 
-    <!-- QR Panel -->
-    <div class="panel" id="panel-qr">
-      <div class="qr-wrap">
-        <div class="qr-box" id="qr-box">
-          <div class="qr-placeholder" id="qr-placeholder">
-            <i class="fa fa-qrcode"></i>
-            <span>Tap below to load</span>
+      <!-- QR Panel -->
+      <div class="panel" id="panel-qr">
+        <div class="qr-wrap">
+          <div class="qr-box" id="qr-box">
+            <div class="qr-placeholder" id="qr-placeholder">
+              <i class="fa fa-qrcode"></i>
+              <span>Tap below to load</span>
+            </div>
+            <img id="qr-img" style="display:none" alt="WhatsApp QR Code">
           </div>
-          <img id="qr-img" style="display:none" alt="WhatsApp QR Code">
-        </div>
-        <div class="qr-hint" id="qr-hint">Scan with WhatsApp → Linked Devices → Link a Device</div>
-        <button class="btn-primary" id="qr-btn" onclick="loadQR()">
-          <i class="fa fa-rotate"></i>&nbsp; Generate QR Code
-        </button>
-      </div>
-    </div>
-
-    <!-- Pair Panel -->
-    <div class="panel active" id="panel-pair">
-      <div class="pair-wrap">
-        <div class="input-row">
-          <input type="tel" id="phone" placeholder="2547xxxxxxxx (with country code)">
-        </div>
-        <button class="btn-primary" id="pair-btn" onclick="requestCode()">
-          <i class="fa fa-paper-plane"></i>&nbsp; Get Pairing Code
-        </button>
-        <div class="result-box" id="result-box">
-          <span class="hint-text">Your code will appear here</span>
-        </div>
-        <div class="instructions" id="instructions">
-          <p>📋 HOW TO USE YOUR CODE</p>
-          <ol>
-            <li>Open <span>WhatsApp</span> on your phone</li>
-            <li>Tap <span>Linked Devices</span> → <span>Link a Device</span></li>
-            <li>Tap <span>"Link with phone number instead"</span></li>
-            <li>Enter the <span>8-digit code</span> shown above</li>
-            <li>Your <span>session ID</span> will arrive on WhatsApp</li>
-          </ol>
+          <div class="qr-hint" id="qr-hint">Scan with WhatsApp → Linked Devices → Link a Device</div>
+          <button class="btn-primary" id="qr-btn" onclick="loadQR()">
+            <i class="fa fa-rotate"></i>&nbsp; Generate QR Code
+          </button>
         </div>
       </div>
-    </div>
 
-    <div class="card-footer">⚡ JuneX Ultra &mdash; Powered by Supreme</div>
+      <!-- Pair Panel -->
+      <div class="panel active" id="panel-pair">
+        <div class="pair-wrap">
+          <div class="input-row">
+            <input type="tel" id="phone" placeholder="2547xxxxxxxx (with country code)">
+          </div>
+          <button class="btn-primary" id="pair-btn" onclick="requestCode()">
+            <i class="fa fa-paper-plane"></i>&nbsp; Get Pairing Code
+          </button>
+          <div class="result-box" id="result-box">
+            <span class="hint-text">Your code will appear here</span>
+          </div>
+          <div class="instructions" id="instructions">
+            <p>How to use your code</p>
+            <ol>
+              <li>Open <span>WhatsApp</span> on your phone</li>
+              <li>Tap <span>Linked Devices</span> → <span>Link a Device</span></li>
+              <li>Tap <span>"Link with phone number instead"</span></li>
+              <li>Enter the <span>8-digit code</span> shown above</li>
+              <li>Your <span>session token</span> will arrive on WhatsApp</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">Astro Extra &mdash; secure session terminal</div>
+    </div>
   </div>
 
   <script>
-    // ── Particles ──
+    // ── Dust particles ──
     const pc = document.getElementById('particles');
-    for (let i = 0; i < 28; i++) {
+    for (let i = 0; i < 26; i++) {
       const p = document.createElement('div');
       p.className = 'particle';
-      const size = Math.random() * 5 + 2;
+      const size = Math.random() * 3.5 + 1.5;
       p.style.cssText = `
         width:${size}px; height:${size}px;
         left:${Math.random() * 100}%;
         bottom:-${size}px;
-        animation-duration:${Math.random() * 14 + 8}s;
+        animation-duration:${Math.random() * 14 + 9}s;
         animation-delay:-${Math.random() * 14}s;
-        opacity:${Math.random() * 0.4 + 0.1};
+        opacity:${Math.random() * 0.35 + 0.1};
       `;
       pc.appendChild(p);
     }
@@ -461,7 +456,7 @@
         qrLoading = false;
       };
       img.onerror = () => {
-        placeholder.innerHTML = '<i class="fa fa-triangle-exclamation" style="color:#ff6b6b"></i><span style="color:#ff6b6b">Failed — try again</span>';
+        placeholder.innerHTML = '<i class="fa fa-triangle-exclamation" style="color:#e08b7a"></i><span style="color:#e08b7a">Failed — try again</span>';
         hint.textContent = 'Could not connect. Please retry.';
         btn.disabled = false;
         btn.innerHTML = '<i class="fa fa-rotate"></i>&nbsp; Retry';
@@ -522,7 +517,7 @@
         const el = document.getElementById('code-val');
         const orig = el.textContent;
         el.textContent = '✔ COPIED';
-        el.style.color = '#7eb8ff';
+        el.style.color = '#fff2cc';
         setTimeout(() => { el.textContent = orig; el.style.color = ''; }, 1200);
       } catch (_) {}
     }
