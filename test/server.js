@@ -97,9 +97,42 @@ async function waitForServer(attempts = 40) {
   check("GET / serves the page", () => assert.strictEqual(page.status, 200));
   check("the page is the Astro Extra build", () => assert.ok(html.includes("Astro Extra"), "branding missing"));
   check("the page references the hero image", () => assert.ok(html.includes("astro-hero.jpg"), "hero image missing"));
+  check("the page ships the token block and copy button", () => {
+    assert.ok(html.includes('id="token-block"'), "token block missing");
+    assert.ok(html.includes('id="copy-btn"'), "copy button missing");
+    assert.ok(html.includes("copyToken"), "copy handler missing");
+  });
+  check("the page polls /status for the finished token", () => assert.ok(html.includes("'/status/'"), "no status polling"));
 
   const pairRedirect = await fetch(base + "/pair", { redirect: "manual" });
   check("GET /pair redirects to /", () => assert.ok([301, 302, 307, 308].includes(pairRedirect.status), "got " + pairRedirect.status));
+
+  console.log("\n[server] /status — what the copy button polls");
+
+  const requests = require("../requests");
+  const record = requests.create({ number: "254705894984", mode: "code" });
+
+  const pending = await (await fetch(base + "/status/" + record.requestId)).json();
+  check("a fresh request reports pending", () => assert.strictEqual(pending.status, "pending"));
+  check("no token before the link completes", () => assert.strictEqual(pending.token, null));
+  check("the phone number is masked, never raw", () => assert.strictEqual(pending.number, "2547****84"));
+
+  requests.update(record.requestId, { status: "code-ready", code: "ABCD1234" });
+  const ready = await (await fetch(base + "/status/" + record.requestId)).json();
+  check("the pairing code is exposed once issued", () => assert.strictEqual(ready.code, "ABCD1234"));
+
+  const token = vault.mintFromSnapshot({ phone: "254705894984", snapshot: SNAPSHOT, label: "copy-button" });
+  requests.update(record.requestId, { status: "paired", token });
+  const statusRes = await fetch(base + "/status/" + record.requestId);
+  const paired = await statusRes.json();
+  check("the token appears once the link completes", () => assert.strictEqual(paired.token, token));
+  check("status is paired", () => assert.strictEqual(paired.status, "paired"));
+  check("/status is not cacheable", () => assert.ok(String(statusRes.headers.get("cache-control")).includes("no-store")));
+  check("the payload carries no JID or credentials", () =>
+    assert.ok(!JSON.stringify(paired).includes("@s.whatsapp.net") && !JSON.stringify(paired).includes("registered")));
+
+  const unknownStatus = await fetch(base + "/status/definitely-not-a-request");
+  check("an unknown request id -> 404", () => assert.strictEqual(unknownStatus.status, 404));
 
   console.log("\n[server] the contract the bot fetches");
 

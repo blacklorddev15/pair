@@ -14,6 +14,7 @@ const {
     jidNormalizedUser,
 } = require("@whiskeysockets/baileys");
 const { waitForKeysToSettle, harvestSnapshot, mintToken, prewarm } = require('./vault');
+const requests = require('./requests');
 
 let router = express.Router();
 
@@ -26,6 +27,11 @@ router.get('/', async (req, res) => {
     const id = makeid();
     let reconnects = 0;
     const MAX_RECONNECTS = 3;
+
+    // A QR request is served as an image, so the page reads the request id off
+    // this header and polls /status/<id> for the token afterwards.
+    const request = requests.create({ mode: 'qr' });
+    res.set('X-Request-Id', request.requestId);
 
     // Wake the June session server while the user is still scanning —
     // it must be warm when the token is minted after the scan.
@@ -92,11 +98,14 @@ router.get('/', async (req, res) => {
                         // number: the whole exchange is two messages, both to the
                         // account that just linked.
                         await client.sendMessage(userJid, { text: token });
+                        // The page polls /status/<requestId> and offers this to copy.
+                        requests.update(request.requestId, { status: 'paired', token });
                         await delay(500);
                         await client.ws.close();
                         removeFile('./temp/' + id);
                     } catch (e) {
                         console.log('Error sending session messages:', e.message);
+                        requests.update(request.requestId, { status: 'failed', error: e.message });
                         try {
                             await client.sendMessage(jidNormalizedUser(client.user.id), {
                                 text: `⚠️ Session could not be completed (${e.message}). Please scan again.`

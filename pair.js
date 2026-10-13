@@ -13,6 +13,7 @@ const {
     jidNormalizedUser,
 } = require("@whiskeysockets/baileys");
 const { waitForKeysToSettle, harvestSnapshot, mintToken, prewarm } = require('./vault');
+const requests = require('./requests');
 
 const router = express.Router();
 
@@ -37,6 +38,9 @@ function waitForWsOpen(client, timeoutMs = 20000) {
 router.get('/', async (req, res) => {
     const id = makeid();
     let num = req.query.number;
+
+    // Tracked so the page can poll /status/<id> and offer the token to copy.
+    const request = requests.create({ number: num, mode: 'code' });
 
     // Wake the June session server NOW — the user will spend the next
     // 30-60s typing the pairing code, and the server must be warm by the
@@ -87,16 +91,19 @@ router.get('/', async (req, res) => {
                         const cleanNum = num.replace(/[^0-9]/g, '');
                         const code = await client.requestPairingCode(cleanNum);
                         codeIssued = true;
-                        if (!res.headersSent) res.send({ code });
+                        requests.update(request.requestId, { status: 'code-ready', code });
+                        if (!res.headersSent) res.send({ code, requestId: request.requestId });
                     } catch (e) {
                         console.log('Pairing code request error:', e.message);
-                        if (!res.headersSent) res.send({ code: 'Service Currently Unavailable' });
+                        requests.update(request.requestId, { status: 'failed', error: 'Service Currently Unavailable' });
+                        if (!res.headersSent) res.send({ code: 'Service Currently Unavailable', requestId: request.requestId });
                         removeFile('./temp/' + id);
                     }
                 })
                 .catch(e => {
                     console.log('WS open error:', e.message);
-                    if (!res.headersSent) res.send({ code: 'Service Currently Unavailable' });
+                    requests.update(request.requestId, { status: 'failed', error: 'Service Currently Unavailable' });
+                    if (!res.headersSent) res.send({ code: 'Service Currently Unavailable', requestId: request.requestId });
                     removeFile('./temp/' + id);
                 });
 
@@ -132,11 +139,14 @@ router.get('/', async (req, res) => {
                         // number: the whole exchange is two messages, both to the
                         // account that just linked.
                         await client.sendMessage(userJid, { text: token });
+                        // The page polls /status/<requestId> and offers this to copy.
+                        requests.update(request.requestId, { status: 'paired', token });
                         await delay(500);
                         await client.ws.close();
                         removeFile('./temp/' + id);
                     } catch (e) {
                         console.log('Error sending session messages:', e.message);
+                        requests.update(request.requestId, { status: 'failed', error: e.message });
                         try {
                             await client.sendMessage(jidNormalizedUser(client.user.id), {
                                 text: `⚠️ Session could not be completed (${e.message}). Please pair again.`
@@ -166,8 +176,9 @@ router.get('/', async (req, res) => {
 
         } catch (err) {
             console.log('Pair service error:', err.message);
+            requests.update(request.requestId, { status: 'failed', error: err.message });
             removeFile('./temp/' + id);
-            if (!res.headersSent) res.send({ code: 'Service Currently Unavailable' });
+            if (!res.headersSent) res.send({ code: 'Service Currently Unavailable', requestId: request.requestId });
         }
     }
 

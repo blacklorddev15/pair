@@ -16,11 +16,29 @@ fixed its ID prefix to theirs.
 | `GET /code?number=` | Baileys pairing code for that number, JSON `{ code }` |
 | `GET /qr?t=` | QR image for linking by scan |
 | `GET /session/:id` | The blob the **bot** downloads: `text/plain`, `<id with ~ → _>~<base64(gzip(creds.json))>` |
+| `GET /status/:requestId` | What the page polls after a pairing starts: `{ status, code, token, error }` — see the copy button below |
 | `GET /health` | `{ ok, version, minting, prefix, sessions, uptimeSeconds }` |
 | `GET /version` | Build marker — `curl` it to see which code a deployment runs |
 
 After linking, the account receives exactly two messages: `⚡ Generating session
 token...` and then the token on its own line. Nothing is sent anywhere else.
+
+### Copy button
+
+`/code` returns a `requestId` alongside the code, and `/qr` returns one in the
+`X-Request-Id` header (the page fetches the image as a blob, because an `<img>`
+cannot read headers). The page then polls `/status/<requestId>` every 3s and,
+when the link completes, shows the token with a **Copy session token** button —
+same for both tabs. If the Clipboard API is unavailable (plain http), the button
+selects the text instead so a long-press or Ctrl+C still works.
+
+The token in that response is the same bearer credential the chat receives, and
+`/status` is public like the rest of the pairing surface. So: request ids are 12
+random characters, the phone number in the payload is masked (`2547****84`), no
+JID or credential is ever included, records expire (`REQUEST_TTL_MINUTES`,
+default 15) and the registry is capped (`MAX_REQUESTS`, default 200). If you would
+rather the token only ever reach the phone, delete the token block from
+`main.html` — the server side stays harmless.
 
 ## Environment variables
 
@@ -32,6 +50,8 @@ token...` and then the token on its own line. Nothing is sent anywhere else.
 | `DATA_DIR` | `./data` | Where issued sessions persist (`sessions.json`) |
 | `VAULT_URL` | *(unset)* | **Optional.** Mint on a remote vault instead of locally |
 | `VAULT_KEY` | *(unset)* | **Optional.** The vault's shared secret — required with `VAULT_URL` |
+| `REQUEST_TTL_MINUTES` | `15` | How long a `/status` record (and the token in it) stays readable |
+| `MAX_REQUESTS` | `200` | Oldest `/status` records are dropped past this |
 
 `VAULT_URL`/`VAULT_KEY` are the only way to leave local mode, and both must be
 set; `JUNE_SESSION_SERVER_URL`, `INTAKE_KEY` and `JUNE_INTAKE_KEY` are accepted as
@@ -67,7 +87,7 @@ point `DATA_DIR` at its mount path if IDs must survive restarts.
 ```
 npm install
 npm test           # local vault: minting, blob format, store (26 checks, offline)
-npm run test:server # boots index.js and exercises the HTTP routes (needs deps)
+npm run test:server # boots index.js and exercises the HTTP routes (29 checks)
 ```
 
 `test/server.js` stubs Baileys (`test/fake-baileys.js`) because no route under

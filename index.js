@@ -9,6 +9,7 @@ const bodyParser = require("body-parser");
 const port = process.env.PORT || 8000;
 const { prewarm, mode } = require('./vault');
 const localVault = require('./localVault');
+const requests = require('./requests');
 let server = require('./qr'),
 code = require('./pair');
 require('events').EventEmitter.defaultMaxListeners = 500;
@@ -47,6 +48,15 @@ app.get('/session/:id', (req, res) => {
     if (!entry) return res.status(404).type('text/plain').send('unknown session\n');
     res.set('Cache-Control', 'no-store');
     res.type('text/plain').send(localVault.renderSessionBody(entry.id, entry.blob));
+})
+// What the page polls after the pairing code appears, to offer the finished
+// token with a copy button. Ids come from requests.js (12 random characters)
+// and expire; the token here is the same bearer credential the chat receives.
+app.get('/status/:requestId', (req, res) => {
+    const record = requests.get(String(req.params.requestId || ''));
+    if (!record) return res.status(404).json({ status: 'unknown' });
+    res.set('Cache-Control', 'no-store');
+    res.json(requests.publicView(record));
 })
 app.get('/health', (req, res) => {
     const stats = localVault.stats();

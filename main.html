@@ -293,6 +293,62 @@
 
     .copy-hint { color: rgba(201,162,75,0.75); font-size: 10px; margin-top: 3px; letter-spacing: 0.16em; text-transform: uppercase; }
 
+    .status-line {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+    .status-line.show { display: flex; }
+
+    .token-block {
+      display: none;
+      background: rgba(201,162,75,0.1);
+      border: 1px solid rgba(201,162,75,0.45);
+      border-radius: 4px;
+      padding: 13px 14px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .token-block.show { display: block; animation: fadeIn 0.25s ease; }
+    .token-label {
+      font-size: 9.5px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+    .token-value {
+      font-family: 'Share Tech Mono', ui-monospace, Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--gold-2);
+      word-break: break-all;
+      user-select: all;
+      margin-bottom: 11px;
+    }
+    .btn-copy {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid rgba(201,162,75,0.55);
+      border-radius: 4px;
+      background: linear-gradient(180deg, var(--olive-2), var(--olive));
+      color: #f6f4ea;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: filter 0.2s;
+    }
+    .btn-copy:hover { filter: brightness(1.12); }
+    .btn-copy.copied { background: linear-gradient(180deg, #7d8f63, #55663f); }
+
     .instructions {
       display: none;
       background: rgba(75,90,58,0.16);
@@ -358,6 +414,17 @@
         </button>
       </div>
 
+      <!-- Session token: shared by both flows, appears once the link completes -->
+      <div class="status-line" id="status-line">
+        <div class="spinner"></div><span id="status-text">Waiting for you to link the device…</span>
+      </div>
+      <div class="token-block" id="token-block">
+        <div class="token-label">Session token</div>
+        <div class="token-value" id="token-value"></div>
+        <button class="btn-copy" id="copy-btn" onclick="copyToken()">Copy session token</button>
+        <div class="copy-hint">paste it as SESSION_ID</div>
+      </div>
+
       <!-- QR Panel -->
       <div class="panel" id="panel-qr">
         <div class="qr-wrap">
@@ -394,7 +461,7 @@
               <li>Tap <span>Linked Devices</span> → <span>Link a Device</span></li>
               <li>Tap <span>"Link with phone number instead"</span></li>
               <li>Enter the <span>8-digit code</span> shown above</li>
-              <li>Your <span>session token</span> will arrive on WhatsApp</li>
+              <li>Your <span>session token</span> appears above, ready to copy (and arrives on WhatsApp)</li>
             </ol>
           </div>
         </div>
@@ -430,9 +497,92 @@
       });
     }
 
+    // ── Session token (shared by the pair-code and QR flows) ──
+    let watchTimer = null;
+
+    function esc(text) {
+      return String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function showStatus(text) {
+      document.getElementById('status-text').textContent = text;
+      document.getElementById('status-line').classList.add('show');
+    }
+    function hideStatus() {
+      document.getElementById('status-line').classList.remove('show');
+    }
+    function resetToken() {
+      document.getElementById('token-block').classList.remove('show');
+      document.getElementById('token-value').textContent = '';
+      hideStatus();
+    }
+
+    function renderToken(token) {
+      document.getElementById('token-value').textContent = token;
+      document.getElementById('token-block').classList.add('show');
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Copy session token';
+      btn.classList.remove('copied');
+    }
+
+    // Polls the server until the link completes, then shows the token to copy.
+    function watchRequest(requestId) {
+      if (!requestId) return;
+      if (watchTimer) clearInterval(watchTimer);
+      let attempts = 0;
+      const maxAttempts = 100; // ~5 minutes at 3s
+      showStatus('Waiting for you to link the device…');
+      watchTimer = setInterval(async () => {
+        attempts += 1;
+        let data = null;
+        try {
+          const res = await fetch('/status/' + encodeURIComponent(requestId), { cache: 'no-store' });
+          data = await res.json();
+        } catch (_) { /* transient — keep polling */ }
+
+        if (data && data.status === 'paired' && data.token) {
+          clearInterval(watchTimer); watchTimer = null;
+          hideStatus();
+          renderToken(data.token);
+          return;
+        }
+        if (data && data.status === 'failed') {
+          clearInterval(watchTimer); watchTimer = null;
+          hideStatus();
+          document.getElementById('result-box').innerHTML =
+            '<span class="error-text">⚠ ' + esc(data.error || 'Pairing failed — please try again') + '</span>';
+          return;
+        }
+        if (attempts >= maxAttempts) { clearInterval(watchTimer); watchTimer = null; hideStatus(); }
+      }, 3000);
+    }
+
+    async function copyToken() {
+      const value = document.getElementById('token-value').textContent;
+      const btn = document.getElementById('copy-btn');
+      try {
+        await navigator.clipboard.writeText(value);
+        btn.textContent = '✔ Copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy session token'; btn.classList.remove('copied'); }, 1600);
+      } catch (_) {
+        // Clipboard API blocked (plain http, or permission denied): select the
+        // text instead so a long-press / Ctrl+C copies it.
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById('token-value'));
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        btn.textContent = 'Selected — press copy';
+      }
+    }
+
     // ── QR Code ──
     let qrLoading = false;
-    function loadQR() {
+    // Fetched rather than assigned to img.src: the response carries the request id
+    // in a header, and an <img> cannot read headers. The bytes go into a blob URL
+    // so the image still renders the same way.
+    async function loadQR() {
       if (qrLoading) return;
       qrLoading = true;
       const btn = document.getElementById('qr-btn');
@@ -440,13 +590,14 @@
       const placeholder = document.getElementById('qr-placeholder');
       const hint = document.getElementById('qr-hint');
 
+      resetToken();
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner" style="display:inline-block;vertical-align:middle"></span>&nbsp; Loading…';
+      placeholder.style.display = '';
       placeholder.innerHTML = '<div class="spinner" style="width:32px;height:32px;border-width:3px"></div>';
       img.style.display = 'none';
       hint.textContent = 'Connecting to WhatsApp…';
 
-      const ts = Date.now();
       img.onload = () => {
         placeholder.style.display = 'none';
         img.style.display = 'block';
@@ -456,13 +607,24 @@
         qrLoading = false;
       };
       img.onerror = () => {
+        placeholder.style.display = '';
         placeholder.innerHTML = '<i class="fa fa-triangle-exclamation" style="color:#e08b7a"></i><span style="color:#e08b7a">Failed — try again</span>';
         hint.textContent = 'Could not connect. Please retry.';
         btn.disabled = false;
         btn.innerHTML = '<i class="fa fa-rotate"></i>&nbsp; Retry';
         qrLoading = false;
       };
-      img.src = '/qr?t=' + ts;
+
+      try {
+        const res = await fetch('/qr?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const requestId = res.headers.get('X-Request-Id');
+        const blob = await res.blob();
+        img.src = URL.createObjectURL(blob);
+        watchRequest(requestId);
+      } catch (_) {
+        img.onerror();
+      }
     }
 
     // ── Pairing Code ──
@@ -474,6 +636,7 @@
       const num   = input.value.replace(/[^0-9]/g, '');
 
       instr.classList.remove('show');
+      resetToken();
 
       if (!num) {
         box.innerHTML = '<span class="error-text">⚠ Please enter your phone number</span>';
@@ -496,10 +659,12 @@
         if (data.code && data.code !== 'Service Currently Unavailable') {
           box.innerHTML = `
             <div>
-              <div class="code-display" id="code-val" title="Tap to copy" onclick="copyCode('${code}')">${code}</div>
+              <div class="code-display" id="code-val" title="Tap to copy" onclick="copyCode('${esc(code)}')">${esc(code)}</div>
               <div class="copy-hint">tap to copy</div>
             </div>`;
           instr.classList.add('show');
+          // Follow the link: when it completes, the token appears above to copy.
+          watchRequest(data.requestId);
         } else {
           box.innerHTML = '<span class="error-text">⚠ ' + code + '</span>';
         }
