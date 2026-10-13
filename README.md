@@ -58,9 +58,9 @@ set (`INTAKE_KEY` is accepted in place of `VAULT_KEY`, matching the vault in
 `../session-service`). With no vault configured, no external service is
 contacted at all.
 
-The June-era aliases (`JUNE_SESSION_SERVER_URL`, `JUNE_INTAKE_KEY`) were removed
-along with the June-X prefix — a deployment still carrying only those two names
-now silently mints locally instead of uploading to a vault.
+The legacy-brand aliases were removed along with the old prefix — a deployment
+still carrying only those two variable names now silently mints locally instead
+of uploading to a vault.
 
 ## Wiring the bot
 
@@ -69,13 +69,13 @@ and its panel config); they are deliberately not renamed here, because the
 deployed panel already holds those names.
 
 ```
-JUNE_SESSION_SERVER_URL=https://<this-service>.onrender.com
+ASTRO_SESSION_SERVER_URL=https://<this-service>.onrender.com
 SESSION_ID=Astro-X~XXXXXXXXXXXX
 ```
 
 The bot accepts `Astro-X~` IDs only. Its `HANDLE_PATTERN`,
 `HANDLE_BODY_STRIP` and `SESSION_ID_PREFIX_RE` no longer carry a
-`june-x`/`JUNE-X` alternative, so an ID in the old format is refused outright.
+prefix alternative at all, so an ID in the old format is refused outright.
 
 The bot only needs this service while bootstrapping; after the first restore it
 keeps its own copy of the credentials. Point the bot at whichever host issued its
@@ -107,5 +107,6 @@ test reaches the WhatsApp protocol code, and the library is ~100 MB.
 
 ## Licence
 
-GPL-3.0. Derived from the JuneX Ultra generator lineage; the licence and a
-derivation note are kept in `package.json`, as GPL requires.
+GPL-3.0. Derived from the upstream pairing-site lineage — the attribution lives
+in [`NOTICE`](NOTICE), which GPL-3.0 requires to be preserved in source
+distributions.

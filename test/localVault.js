@@ -70,7 +70,7 @@ function check(name, fn) {
   check("isSessionId accepts the minted ID", () => assert.ok(vault.isSessionId(id)));
   check("isSessionId accepts a case-folded paste (bot pattern is i-flagged)", () =>
     assert.ok(vault.isSessionId(id.toLowerCase())));
-  check("isSessionId rejects a June-era prefix outright", () => assert.ok(!vault.isSessionId("JUNE-X~ABCDEFGHIJKL")));
+  check("isSessionId rejects the legacy-era prefix outright", () => assert.ok(!vault.isSessionId("JUNE-X~ABCDEFGHIJKL")));
   check("isSessionId rejects a 3-char body (bot needs 4-20)", () => assert.ok(!vault.isSessionId("Astro-X~ABC")));
 
   process.env.SESSION_PREFIX = "ASTRO X:~";

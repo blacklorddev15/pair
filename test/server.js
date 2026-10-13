@@ -161,7 +161,7 @@ async function waitForServer(attempts = 40) {
   const junk = await fetch(base + "/session/nonsense");
   check("malformed ID -> 404", () => assert.strictEqual(junk.status, 404));
   const oldPrefix = await fetch(base + "/session/" + encodeURIComponent("JUNE-X~ABCDEFGHIJKL"));
-  check("the old JUNE-X~ prefix is no longer served -> 404", () => assert.strictEqual(oldPrefix.status, 404));
+  check("the old legacy prefix is no longer served -> 404", () => assert.strictEqual(oldPrefix.status, 404));
 
   console.log("\n[server] " + pass + " passed, " + fail + " failed\n");
   try {
