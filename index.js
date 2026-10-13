@@ -65,6 +65,7 @@ app.get('/health', (req, res) => {
         version: VERSION,
         minting: mode(),          // "local" unless a vault is configured
         prefix: stats.prefix,
+        format: stats.format,     // "raw" (token carries the creds) or "handle"
         sessions: stats.sessions,
         uptimeSeconds: Math.floor(process.uptime())
     });

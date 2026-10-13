@@ -23,6 +23,8 @@ process.env.DATA_DIR = TMP;
 process.env.SESSION_PREFIX = "Astro-X~";
 process.env.SESSION_BODY_LENGTH = "12";
 process.env.SESSION_KEEP_MINUTES = "0";
+// This suite is about the /session/<id> contract, which only the handle format has.
+process.env.SESSION_FORMAT = "handle";
 process.env.PORT = String(PORT);
 delete process.env.VAULT_URL;
 delete process.env.VAULT_KEY;

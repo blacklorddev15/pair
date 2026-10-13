@@ -9,13 +9,20 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      # Session IDs this site issues look like: Astro-X~A1B2C3D4E5F6
+      # Session IDs this site issues look like: Astro-X~<base64 creds>   (raw)
+      #                                    or: Astro-X~A1B2C3D4E5F6      (handle)
       - key: SESSION_PREFIX
         value: "Astro-X~"
+      # raw = the token IS the credentials, so the bot needs nothing from this
+      # service after pairing (a free instance that restarts cannot break it).
+      # handle = the older short id, downloadable from /session/<id> while this
+      # instance stays up. Only "handle" uses the two keys below.
+      - key: SESSION_FORMAT
+        value: "raw"
       - key: SESSION_BODY_LENGTH
         value: "12"
-      # 0 = keep issued sessions until the service restarts. Attach a Render disk
-      # and point DATA_DIR at it if IDs must survive a restart/redeploy.
+      # "handle" format only: 0 = keep issued sessions until the service restarts.
+      # Attach a Render disk and point DATA_DIR at it if IDs must survive.
       - key: SESSION_KEEP_MINUTES
         value: "0"
       # Optional: mint on a remote vault instead of locally. BOTH are required,

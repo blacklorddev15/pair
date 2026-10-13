@@ -9,11 +9,20 @@
  * bot fetches it from this service's own URL and the prefix is ours:
  *
  *   SESSION_PREFIX        default "Astro-X~"
- *   SESSION_BODY_LENGTH   default 12 (the bot's handle pattern allows 4-20)
+ *   SESSION_FORMAT        "raw" (default) or "handle" — see below
+ *   SESSION_BODY_LENGTH   default 12 ("handle" format only; the bot allows 4-20)
  *   DATA_DIR              default ./data (sessions.json lives here)
  *   SESSION_KEEP_MINUTES  0 = keep issued sessions until the process restarts
  *
- * Endpoint contract the bot depends on (unchanged):
+ * Formats:
+ *   raw     The token IS the credentials — "<prefix><base64(creds.json)>". The bot
+ *           uses it as SESSION_ID straight away: no /session fetch at run time, and
+ *           nothing to lose when this service restarts. Nothing is stored.
+ *   handle  The token is a short "<prefix><12 chars>" id; the credentials stay in
+ *           this service's store and the bot downloads them from /session/<id>.
+ *           That only works while this instance is still up.
+ *
+ * Endpoint contract the bot depends on ("handle" format only):
  *   GET /session/<id> -> text/plain
  *   <id with ~ replaced by _>~<base64(gzip(creds.json))>
  */
@@ -31,6 +40,12 @@ function sessionPrefix() {
 
 function bodyLength() {
   return Number(process.env.SESSION_BODY_LENGTH || 12);
+}
+
+function sessionFormat() {
+  return String(process.env.SESSION_FORMAT || 'raw')
+    .trim()
+    .toLowerCase();
 }
 
 function dataDir() {
@@ -160,6 +175,12 @@ function mintFromSnapshot({ phone, snapshot, label }) {
   }
   if (!creds?.me?.id) throw new Error('the harvested creds are incomplete (no me.id)');
   if (creds.registered !== true) throw new Error('the harvested creds are incomplete (not registered)');
+  // Both formats carry the same credentials. "raw" hands them over inside the
+  // token itself, so the bot needs nothing from this service afterwards — that is
+  // why it is the default: a free instance that restarts cannot break it.
+  if (sessionFormat() === 'raw') {
+    return sessionPrefix() + Buffer.from(credsText, 'utf8').toString('base64');
+  }
   const keys = Array.isArray(snapshot?.sessionKeys) ? snapshot.sessionKeys : [];
   const digits = String(phone || '').replace(/\D/g, '');
   const id = mintSessionId();
@@ -173,7 +194,13 @@ function mintFromSnapshot({ phone, snapshot, label }) {
 }
 
 function stats() {
-  return { prefix: sessionPrefix(), bodyLength: bodyLength(), sessions: sessions.size, dataDir: dataDir() };
+  return {
+    prefix: sessionPrefix(),
+    format: sessionFormat(),
+    bodyLength: bodyLength(),
+    sessions: sessions.size,
+    dataDir: dataDir(),
+  };
 }
 
 function reset() {
@@ -196,5 +223,6 @@ module.exports = {
   stats,
   reset,
   sessionPrefix,
+  sessionFormat,
   bodyLength,
 };

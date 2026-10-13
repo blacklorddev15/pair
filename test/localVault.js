@@ -20,6 +20,8 @@ process.env.DATA_DIR = TMP;
 process.env.SESSION_PREFIX = "Astro-X~";
 process.env.SESSION_BODY_LENGTH = "12";
 process.env.SESSION_KEEP_MINUTES = "0";
+// The store/serve contract below is the "handle" format; raw is covered at the end.
+process.env.SESSION_FORMAT = "handle";
 
 const vault = require("../localVault");
 
@@ -147,8 +149,33 @@ function check(name, fn) {
   check("stats reports the prefix and the count", () => {
     const stats = vault.stats();
     assert.strictEqual(stats.prefix, "Astro-X~");
+    assert.strictEqual(stats.format, "handle");
     assert.ok(stats.sessions >= 1);
   });
+
+  console.log("\n[vault] raw format (the default)");
+
+  delete process.env.SESSION_FORMAT;
+  check("raw is the default format", () => assert.strictEqual(vault.sessionFormat(), "raw"));
+
+  const rawToken = vault.mintFromSnapshot({ phone: "254705894984", snapshot: SNAPSHOT, label: "raw" });
+  check("raw token starts with the configured prefix", () => assert.ok(rawToken.startsWith("Astro-X~"), rawToken.slice(0, 24)));
+  check("raw token decodes to the exact creds JSON", () =>
+    assert.deepStrictEqual(
+      JSON.parse(Buffer.from(rawToken.slice("Astro-X~".length), "base64").toString("utf8")),
+      JSON.parse(CREDS_TEXT)
+    ));
+  check("raw token carries the BufferJSON key material", () =>
+    assert.strictEqual(
+      JSON.parse(Buffer.from(rawToken.slice("Astro-X~".length), "base64").toString("utf8")).noiseKey.type,
+      "Buffer"
+    ));
+  check("raw token is not stored — nothing for the bot to fetch", () => assert.strictEqual(vault.findSession(rawToken), null));
+  check("raw token can never be mistaken for a handle", () => assert.ok(!BOT_HANDLE_PATTERN.test(rawToken)));
+  check("raw mode still refuses incomplete creds", () =>
+    assert.throws(() => vault.mintFromSnapshot({ phone: "2547", snapshot: { sessionCreds: [{ key: "creds", value: JSON.stringify({ me: { id: "2547:1@s.whatsapp.net" } }) }] } }), /not registered/));
+
+  process.env.SESSION_FORMAT = "handle";
 
   console.log("\n[vault] " + pass + " passed, " + fail + " failed\n");
   try {
